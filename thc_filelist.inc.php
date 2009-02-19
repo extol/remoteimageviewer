@@ -60,10 +60,7 @@ function thc_filelist($location)
 	
   // deny them higher directories or even the current directory
   if ((substr($location,0,1)==".") || (strlen($location)==0))
-  {  
-  	//echo "<h1>404 File Not Found</h1>";	
-    return;  // they tried to get clever and go to a higher directory
-  }
+     return;  // they tried to get clever and go to a higher directory
     
   $remote = (substr($location, 0, 4)=="http");
   
