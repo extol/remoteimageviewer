@@ -1,0 +1,146 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us">
+<head>
+<title>Remote Image Viewer</title>
+<link href="./jcarousel/style.css" rel="stylesheet" type="text/css" />
+
+<!--  jQuery library -->
+<script type="text/javascript" src="./jcarousel/lib/jquery-1.2.3.pack.js"></script>
+
+<!-- jCarousel library -->
+<script type="text/javascript" src="./jcarousel/lib/jquery.jcarousel.pack.js"></script>
+
+<!--   jCarousel core stylesheet -->
+<link rel="stylesheet" type="text/css" href="./jcarousel/lib/jquery.jcarousel.css" />
+
+<!-- jCarousel skin stylesheet -->
+<link rel="stylesheet" type="text/css" href="./jcarousel/skins/ie7/skin.css" />
+<link rel="stylesheet" type="text/css" href="./jcarousel/skins/tango/skin.css" />
+
+<style type="text/css">
+/**
+ * Overwrite for having a carousel with dynamic width.
+ */
+.jcarousel-skin-ie7 .jcarousel-container-horizontal {
+    width: 85%;
+}
+
+.jcarousel-skin-ie7 .jcarousel-clip-horizontal {
+    width: 100%;
+}
+</style>
+
+<script type="text/javascript">
+
+// Global Variables
+  myCarousel = null; // This will be the carousel object handle for resetting
+  filelocation = "http://images.pagesalt.com";  
+
+  
+function onInitCarousel(carousel, state) {
+    if (state == 'init') {
+        myCarousel = carousel;
+    }
+}
+
+
+function mycarousel_itemLoadCallback(carousel, state)
+{
+    // Check if the requested items already exist
+    if (carousel.has(carousel.first, carousel.last)) {
+        return;
+    }
+   
+   
+    //filelocation = "http://images.pagesalt.com";
+    // alert(filelocation);
+    jQuery.get(
+        'thc_carousel_ajax.php',
+        {
+            first: carousel.first,
+            last: carousel.last,
+            fileurl: filelocation
+        },
+        function(xml) {
+            mycarousel_itemAddCallback(carousel, carousel.first, carousel.last, xml);
+        },
+        'xml'
+    );
+};
+
+function mycarousel_itemAddCallback(carousel, first, last, xml)
+{
+    // Set the size of the carousel
+    carousel.size(parseInt(jQuery('total', xml).text()));
+
+    jQuery('image', xml).each(function(i) {
+        carousel.add(first + i, mycarousel_getItemHTML(jQuery(this).text()));
+    });
+};
+
+/**
+ * Item html creation helper.
+ */
+function mycarousel_getItemHTML(url)
+{
+   // return '<img src="' + url + '" width="75" height="75" alt="" onclick="alert(\'' + url + '\');" />';
+   // return '<img src="' + url + '" width="75" height="75" alt="" onclick="$(\'#clicked\').html(this.src);" />';
+  
+   return '<img src="' + url + '" width="75" height="75" alt="" onclick="$(\'#bigimage\')[0].src=this.src; $(\'#clicked\').html(this.src);" />'; 
+};
+
+function resetCarousel() {
+    filelocation = $('#locationtxt')[0].value; // $('#locationtxt').value;    
+    myCarousel.reset();
+} 
+
+$(document).ready( function (){   
+  $('#locationtxt')[0].value = filelocation;
+        
+        
+  $('#mycarouseldiv').jcarousel({         
+    initCallback: onInitCarousel,  // used to get handle of carousel for resetting
+    visible: 4,        
+         
+    // wrap: 'last', 
+        
+    // Uncomment the following option if you want items
+    // which are outside the visible range to be removed
+    // from the DOM.
+    // Useful for carousels with MANY items.
+
+    itemVisibleOutCallback: {onAfterAnimation: function(carousel, item, i, state, evt) { carousel.remove(i); }},
+    itemLoadCallback: mycarousel_itemLoadCallback
+  });
+  
+});
+
+
+</script>
+</head>
+<body >
+<div id="wrap">
+  <h1>Remote Image Viewer</h1>
+  <h2>View any image files on the internet</h2>
+  
+    <div style="width:390px; text-align:center;">
+      <ul id="mycarouseldiv" class="jcarousel-skin-ie7">
+        <!-- The content will be dynamically loaded in here -->
+      </ul>
+    </div>
+
+    <input type="text" id="locationtxt" size="40"  onkeypress="if (event.keyCode == 13) $('#chgbtn').click();">     
+    <button id="chgbtn" type="button" onclick="resetCarousel();">Change Image Library Location</button>    
+    
+  
+  <div style="width=100%; padding-top:20px;">
+  	<span id="clicked"></span>
+  	<br />
+    <img id="bigimage" alt="" />
+  </div>
+  
+</div>
+</body>
+</html>
+ 
